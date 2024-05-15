@@ -16,10 +16,10 @@ class AccountMove(models.Model):
 
     def _get_last_sequence(self, relaxed=False, with_prefix=None):
         
-        if self.move_type == 'out_invoice' and not config['test_enable']:
+        if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             date_start, date_end = self._get_sequence_date_range('year')
             moves = self.env['account.move'].sudo().search([
-                ('move_type', '=', 'out_invoice'),
+                ('move_type', '=', self.move_type),
                 ('journal_id', '=', self.journal_id.id),
                 ('id', '!=', self.id or self._origin.id),
                 ('name', 'not in', ('/', '', False)),
@@ -36,7 +36,7 @@ class AccountMove(models.Model):
 
     def _get_sequence_format_param(self, previous):
         
-        if self.move_type == 'out_invoice' and not config['test_enable']:
+        if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             if not previous or previous == '/':
                 previous = self._get_starting_sequence()
             res = super()._get_sequence_format_param(previous)
@@ -47,7 +47,7 @@ class AccountMove(models.Model):
     @api.model
     def _deduce_sequence_number_reset(self, name):
         
-        if self.move_type == 'out_invoice' and not config['test_enable']:
+        if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             if not name or name == '/':
                 name = self._get_starting_sequence()
             for regex, ret_val, requirements in [
@@ -77,7 +77,7 @@ class AccountMove(models.Model):
 
     def _set_next_sequence(self):
 
-        if self.move_type == 'out_invoice' and not config['test_enable']:
+        if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             self.ensure_one()
             last_sequence = self._get_last_sequence()
             new = not last_sequence
@@ -124,7 +124,7 @@ class AccountMove(models.Model):
         test = False
 
         for record in self:
-            if record.move_type == 'out_invoice' and not config['test_enable']:
+            if record.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
                 test = True
                 sequence = record[record._sequence_field] or ''
                 regex = re.sub(r"\?P<\w+>", "?:",
@@ -137,7 +137,7 @@ class AccountMove(models.Model):
             super(AccountMove, self)._compute_split_sequence()
     def _sequence_matches_date(self):
         res = super()._sequence_matches_date()
-        if self.move_type == 'out_invoice' and not config['test_enable']:
+        if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             sequence = self[self._sequence_field]
             format_values = self._get_sequence_format_param(sequence)[1]
             match = re.match(self._sequence_yearly_regex, sequence or '')
@@ -151,7 +151,7 @@ class AccountMove(models.Model):
         # EXTENDS account sequence.mixin
         self.ensure_one()
         
-        if self.move_type == 'out_invoice' and not config['test_enable']:
+        if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             starting_sequence = "%04d-%02d-%s000" % (self.date.year, self.date.month, self.journal_id.code)
             return starting_sequence
         return super()._get_starting_sequence()
