@@ -18,8 +18,12 @@ class AccountMove(models.Model):
         
         if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             date_start, date_end = self._get_sequence_date_range('year')
+            if self.journal_id.refund_sequence:
+                move_type = [self.move_type]
+            else:
+                move_type = ['out_invoice', 'out_refund']
             moves = self.env['account.move'].sudo().search([
-                ('move_type', '=', self.move_type),
+                ('move_type', 'in', move_type),
                 ('journal_id', '=', self.journal_id.id),
                 ('id', '!=', self.id or self._origin.id),
                 ('name', 'not in', ('/', '', False)),
