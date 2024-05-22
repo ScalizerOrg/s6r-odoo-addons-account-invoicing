@@ -11,4 +11,7 @@ def _update_journal_regex(env):
         sale_journal.sudo().write({
             'sequence_override_regex': regex
         })
+        invoices = env['account.move'].search([('move_type', 'in', ('out_invoice', 'out_refund'))])
+        for inv in invoices:
+            inv._compute_split_sequence()
     return True

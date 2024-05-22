@@ -7,7 +7,6 @@ from odoo.tools import frozendict, mute_logger, date_utils
 from odoo.exceptions import ValidationError
 from odoo.tools import config
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -15,7 +14,7 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     def _get_last_sequence(self, relaxed=False, with_prefix=None):
-        
+
         if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             date_start, date_end = self._get_sequence_date_range('year')
             if self.journal_id.refund_sequence:
@@ -39,7 +38,7 @@ class AccountMove(models.Model):
         return super()._get_last_sequence(relaxed, with_prefix)
 
     def _get_sequence_format_param(self, previous):
-        
+
         if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             if not previous or previous == '/':
                 previous = self._get_starting_sequence()
@@ -50,7 +49,7 @@ class AccountMove(models.Model):
 
     @api.model
     def _deduce_sequence_number_reset(self, name):
-        
+
         if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             if not name or name == '/':
                 name = self._get_starting_sequence()
@@ -94,7 +93,8 @@ class AccountMove(models.Model):
                 date_start, date_end = self._get_sequence_date_range(sequence_number_reset)
                 format_values['seq'] = 0
                 format_values['year'] = self._truncate_year_to_length(date_start.year, format_values['year_length'])
-                format_values['year_end'] = self._truncate_year_to_length(date_end.year, format_values['year_end_length'])
+                format_values['year_end'] = self._truncate_year_to_length(date_end.year,
+                                                                          format_values['year_end_length'])
                 format_values['month'] = date_start.month
                 format_values['prefix2'] = "{:02d}".format(date_start.month)
             self.flush_recordset()
@@ -131,14 +131,13 @@ class AccountMove(models.Model):
             if record.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
                 test = True
                 sequence = record[record._sequence_field] or ''
-                regex = re.sub(r"\?P<\w+>", "?:",
-                               record._sequence_fixed_regex.replace(r"?P<seq>", ""))
-                matching = re.match(regex, sequence)
-                if matching: # Condition added by Scalizer
-                    record.sequence_prefix = sequence[:matching.start(1)]
-                    record.sequence_number = int(matching.group(1) or 0)
+                code = record.journal_id.code if record.journal_id.code else 'FAC'
+                record.sequence_prefix = '{}-{:02d}-{}'.format(record.date.year, record.date.month, code)
+                sequence = re.findall(r'\d+', sequence.split('-')[2]) if len(sequence.split('-')) == 3 else []
+                record.sequence_number = int(sequence[0]) if sequence else ''
         if not test:
             super(AccountMove, self)._compute_split_sequence()
+
     def _sequence_matches_date(self):
         res = super()._sequence_matches_date()
         if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
@@ -154,8 +153,31 @@ class AccountMove(models.Model):
     def _get_starting_sequence(self):
         # EXTENDS account sequence.mixin
         self.ensure_one()
-        
+
         if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             starting_sequence = "%04d-%02d-%s000" % (self.date.year, self.date.month, self.journal_id.code)
             return starting_sequence
         return super()._get_starting_sequence()
+
+    @api.depends('name', 'journal_id')
+    def _compute_made_sequence_hole(self):
+        if self[0].move_type in ['out_invoice', 'out_refund'] and not config['test_enable']:
+            self.env.cr.execute("""
+                        SELECT this.id
+                          FROM account_move this
+                          JOIN res_company company ON company.id = this.company_id
+                     LEFT JOIN account_move other ON this.journal_id = other.journal_id
+                                                 AND date_part('year', this.invoice_date) = date_part('year', other.invoice_date)
+                                                 AND this.sequence_number = other.sequence_number + 1
+                         WHERE other.id IS NULL
+                           AND this.sequence_number != 1
+                           AND this.name != '/'
+                           AND this.id = ANY(%(move_ids)s)
+                    """, {
+                'move_ids': self.ids,
+            })
+            made_sequence_hole = set(r[0] for r in self.env.cr.fetchall())
+            for move in self:
+                move.made_sequence_hole = move.id in made_sequence_hole
+            return
+        return super()._compute_made_sequence_hole()

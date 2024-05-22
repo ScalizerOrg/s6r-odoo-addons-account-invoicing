@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name' : 'Scalizer Invoice Sequence',
-    'version' : '17.0.1.0',
+    'version' : '17.0.1.1',
     'summary': 'Invoice sequence for Scalizer' ,
     'description': """
 This module customize the invoice sequence for Scalizer """,
