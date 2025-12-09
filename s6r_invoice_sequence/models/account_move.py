@@ -16,7 +16,7 @@ class AccountMove(models.Model):
     def _get_last_sequence(self, relaxed=False, with_prefix=None):
 
         if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
-            date_start, date_end = self._get_sequence_date_range('year')
+            date_start, date_end, _, _ = self._get_sequence_date_range('year')
             if self.journal_id.refund_sequence:
                 move_type = [self.move_type]
             else:
@@ -44,6 +44,7 @@ class AccountMove(models.Model):
                 previous = self._get_starting_sequence()
             res = super()._get_sequence_format_param(previous)
             res[1]['prefix2'] = "{:02d}".format(self.date.month)
+
             return res
         return super()._get_sequence_format_param(previous)
 
@@ -90,7 +91,7 @@ class AccountMove(models.Model):
             format_string, format_values = self._get_sequence_format_param(last_sequence)
             sequence_number_reset = self._deduce_sequence_number_reset(last_sequence)
             if new:
-                date_start, date_end = self._get_sequence_date_range(sequence_number_reset)
+                date_start, date_end, _, _ = self._get_sequence_date_range(sequence_number_reset)
                 format_values['seq'] = 0
                 format_values['year'] = self._truncate_year_to_length(date_start.year, format_values['year_length'])
                 format_values['year_end'] = self._truncate_year_to_length(date_end.year,
@@ -157,6 +158,7 @@ class AccountMove(models.Model):
         if self.move_type in ('out_invoice', 'out_refund') and not config['test_enable']:
             starting_sequence = "%04d-%02d-%s000" % (self.date.year, self.date.month, self.journal_id.code)
             return starting_sequence
+
         return super()._get_starting_sequence()
 
     @api.depends('name', 'journal_id')
