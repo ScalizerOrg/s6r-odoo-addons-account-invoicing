@@ -1,0 +1,67 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* s6r_account_payment_method_default
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-15 12:55+0000\n"
+"PO-Revision-Date: 2026-10-15 12:55+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: s6r_account_payment_method_default
+#. odoo-python
+#: code:addons/s6r_account_payment_method_default/models/account_payment_method_line.py:0
+msgid ""
+"%(method)s on journal %(journal)s is already the default value for company "
+"%(company)s"
+msgstr ""
+"%(method)s sur le journal %(journal)s est déjà la valeur par défaut pour la "
+"société %(company)s"
+
+#. module: s6r_account_payment_method_default
+#: model:ir.model.fields,field_description:s6r_account_payment_method_default.field_account_payment_method_line__is_default
+msgid "Default Value"
+msgstr "Valeur par défaut"
+
+#. module: s6r_account_payment_method_default
+#: model:ir.model.fields,field_description:s6r_account_payment_method_default.field_account_move__display_name
+#: model:ir.model.fields,field_description:s6r_account_payment_method_default.field_account_payment_method_line__display_name
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#. module: s6r_account_payment_method_default
+#: model:ir.model.fields,field_description:s6r_account_payment_method_default.field_account_move__id
+#: model:ir.model.fields,field_description:s6r_account_payment_method_default.field_account_payment_method_line__id
+msgid "ID"
+msgstr ""
+
+#. module: s6r_account_payment_method_default
+#: model:ir.model,name:s6r_account_payment_method_default.model_account_move
+msgid "Journal Entry"
+msgstr "Pièce comptable"
+
+#. module: s6r_account_payment_method_default
+#: model_terms:ir.ui.view,arch_db:s6r_account_payment_method_default.view_invoice_tree_payment_method_default
+msgid "Payment Method"
+msgstr "Mode de paiement"
+
+#. module: s6r_account_payment_method_default
+#: model:ir.model,name:s6r_account_payment_method_default.model_account_payment_method_line
+msgid "Payment Methods"
+msgstr "Modes de paiement"
+
+#. module: s6r_account_payment_method_default
+#: model:ir.model.fields,help:s6r_account_payment_method_default.field_account_payment_method_line__is_default
+msgid ""
+"Used as payment method on new invoices and bills when the partner has no "
+"payment method defined for the company."
+msgstr ""
+"Utilisé comme mode de paiement sur les nouvelles factures lorsque le "
+"partenaire n'a pas de mode de paiement défini pour la société."
